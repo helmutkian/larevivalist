@@ -19,12 +19,12 @@
    calendar date entry"
   (mapcar #'list
 	  (remove nil
-		  (mapcar #'ws:text
+		  (mapcar #'ws:get-text
 			  (ws:find-all entry :class "event-block")))
-	  (mapcar #'ws:text (ws:find-all entry :tag :small))))
+	  (mapcar #'ws:get-text (ws:find-all entry :tag :small))))
 
 (defun get-day (entry &key (month *month*) (year *year*))
-  (ws:text (ws:find-first entry :class "dayHead")))
+  (ws:get-text (ws:find-first entry :class "dayHead")))
 
 (defun format-showtimes (entry)
   (let ((date (format-date (get-day entry)))

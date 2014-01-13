@@ -19,9 +19,9 @@
       "Aero Theatre"))
 
 (defun format-showtime (entry)
-  (let ((date (format-date (ws:text (ws:find-first entry :class "day"))))
-	(title (ws:text (ws:find-first entry :tag :a)))
-        (time (ws:text (ws:find-first entry :class "date-display-single")))
+  (let ((date (format-date (ws:get-text (ws:find-first entry :class "day"))))
+	(title (ws:get-text (ws:find-first entry :tag :a)))
+        (time (ws:get-text (ws:find-first entry :class "date-display-single")))
         (theatre (get-theatre 
 		  (ws:get-attrib :title
 				 (ws:find-first entry
