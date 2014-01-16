@@ -37,7 +37,15 @@
 	  (ws:find-all entry :tag :a)))
 
 (defun get-times (entry)
-  (mapcar #'ws:get-text
+  ;; Google Calendar requires a space between the time digits and the
+  ;; am/pm designation
+  (mapcar (lambda (tree) 
+	    (let* ((text (ws:get-text tree))
+		   (am-pm-pos (position-if #'alpha-char-p text)))
+	      (concatenate 'string
+			   (subseq text 0 am-pm-pos)
+			   " "
+			   (subseq text am-pm-pos))))
 	  (ws:find-all entry :class "date-display-single")))
 
 (defun collect-showtimes (dom)
