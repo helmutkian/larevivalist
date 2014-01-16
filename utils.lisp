@@ -6,12 +6,7 @@
 	   #:strip-whitespace
 	   #:format-date
 	   #:make-show
-	   #:get-title
-	   #:get-date
-	   #:get-time
-	   #:get-theatre
-	   #:csv-header
-	   #:show->csv))
+	   #:create-csv-file))
 
 (in-package #:com.larevivalist.scraper.utils)
 

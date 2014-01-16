@@ -1,11 +1,18 @@
 (defpackage #:com.larevivalist.scraper.cinefamily
   (:nicknames #:larev.cf)
   (:use #:cl #:com.larevivalist.scraper.utils)
-  (:export #:collect-showtimes))
+  (:export #:scrape-shows))
 
 (in-package #:com.larevivalist.scraper.cinefamily)
 
-(defvar *cf-cal-dom* (ws:get-processed-dom "http://www.cinefamily.org/#calendar"))
+(defvar *cf-cal-url* "http://www.cinefamily.org/#calendar")
+(defvar *cf-cal-dom* nil)
+
+(defun get-dom (&optional (url *cf-cal-url*))
+  (if *cf-cal-dom*
+      *cf-cal-dom*
+      (setf *cf-cal-dom*
+	    (ws:get-processed-dom url))))
 
 (defun get-calendar-entries (dom)
   (remove-if-not (lambda (entry)
@@ -39,3 +46,6 @@
   (loop for entry in (get-calendar-entries cal-dom)
         for shows = (format-showtimes entry)
         append shows))
+
+(defun scrape-shows ()
+  (collect-shows (get-dom)))

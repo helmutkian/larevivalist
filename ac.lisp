@@ -1,11 +1,18 @@
 (defpackage #:com.larevivalist.scraper.american-cinematheque
   (:nicknames #:larev.ac)
   (:use #:cl #:com.larevivalist.scraper.utils)
-  (:export #:collect-showtimes))
+  (:export #:scrape-shows))
 
 (in-package #:com.larevivalist.scraper.american-cinematheque)
 
-(defvar *ac-cal-dom* (ws:get-raw-dom "http://americancinemathequecalendar.com/calendar"))
+(defvar *ac-cal-url "http://americancinemathequecalendar.com/calendar")
+
+(defvar *ac-cal-dom* nil)
+
+(defun get-dom (&optional (url *ac-cal-url*))
+  (if *ac-cal-dom*
+      *ac-cal-dom*
+      (setf *ac-cal-dom* (ws:get-raw-dom url))))
 
 (defun get-non-empty-calendar-entries (dom)
   (remove-if (lambda (node)
@@ -44,3 +51,6 @@
 			       :date ,date
 			       :time ,time
 			       :theatre ,theatre))))
+
+(defun scrape-shows ()
+  (collect-showtimes (get-dom)))
