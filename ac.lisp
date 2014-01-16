@@ -5,29 +5,42 @@
 
 (in-package #:com.larevivalist.scraper.american-cinemateque)
 
-(defvar *ac-cal-dom* (ws:get-processed-dom "http://americancinemathequecalendar.com/calendar"))
+(defvar *ac-cal-dom* (ws:get-raw-dom "http://americancinemathequecalendar.com/calendar"))
 
 (defun get-non-empty-calendar-entries (dom)
   (remove-if (lambda (node)
 	       (ws:find-first node :class "calendar-empty"))
 	     (ws:find-all dom :class "inner")))
 
-(defun get-theatre (event-str)
-  (if (string= (second (split-sequence:split-sequence #\space event-str)) 
-	       "EGYPTIAN")
-      "Egyptian Theatre"
-      "Aero Theatre"))
+(defun get-theatres (entry)
+  (let ((theatre-strs (mapcar (lambda (x) (ws:get-attrib :title x))
+			      (ws:find-all entry :class "stripe"))))
+    (mapcar (lambda (str)
+	      (if (string= str "Key: EGYPTIAN EVENT")
+		  "Egyptian Theatre"
+		  "Aero Theatre"))
+	    theatre-strs)))
 
-(defun format-showtime (entry)
-  (let ((date (format-date (ws:get-text (ws:find-first entry :class "day"))))
-	(title (ws:get-text (ws:find-first entry :tag :a)))
-        (time (ws:get-text (ws:find-first entry :class "date-display-single")))
-        (theatre (get-theatre 
-		  (ws:get-attrib :title
-				 (ws:find-first entry
-						:class "stripe")))))
-    `(:title ,title :date ,date :time ,time :theatre ,theatre)))
+(defun get-date (entry)
+  (format-date (strip-whitespace 
+		(ws:get-text (ws:find-first entry :class "day")))))
 
-(defun collect-showtimes (cal)
-  (loop for entry in (get-non-empty-calendar-entries cal)
-        collect (format-showtime entry)))
+(defun get-titles (entry)
+  (mapcar #'ws:get-text
+	  (ws:find-all entry :tag :a)))
+
+(defun get-times (entry)
+  (mapcar #'ws:get-text
+	  (ws:find-all entry :class "date-display-single")))
+
+(defun collect-showtimes (dom)
+  (loop with showtimes = (get-non-empty-calendar-entries dom)
+        for entry in showtimes
+        for date = (get-date entry)
+        append (loop for title in (get-titles entry)
+		     for time in (get-times entry)
+		     for theatre in (get-theatres entry)
+		     collect `(:title ,title
+			       :date ,date
+			       :time ,time
+			       :theatre ,theatre))))
