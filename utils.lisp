@@ -4,7 +4,8 @@
   (:export #:*month*
 	   #:*year*
 	   #:strip-whitespace
-	   #:format-date))
+	   #:format-date
+	   #:make-show))
 
 (in-package #:com.larevivalist.scraper.utils)
 
@@ -17,3 +18,11 @@
 
 (defun format-date (day &key (month *month*) (year *year*))
   (format nil "~a/~a/~a" month day year))
+
+(defun make-show (&key title date time theatre)
+  `(:title ,title
+    :date ,date
+    :time ,time
+    :theatre ,theatre))
+
+
