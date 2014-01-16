@@ -49,4 +49,4 @@
         append shows))
 
 (defun scrape-shows (&key (ignore-past-shows t))
-  (collect-shows (get-dom)) ignore-past-shows)
+  (collect-showtimes (get-dom) ignore-past-shows))

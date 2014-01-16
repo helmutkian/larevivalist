@@ -5,7 +5,7 @@
 
 (in-package #:com.larevivalist.scraper.american-cinematheque)
 
-(defvar *ac-cal-url "http://americancinemathequecalendar.com/calendar")
+(defvar *ac-cal-url* "http://americancinemathequecalendar.com/calendar")
 
 (defvar *ac-cal-dom* nil)
 
