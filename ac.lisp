@@ -1,9 +1,9 @@
-(defpackage #:com.larevivalist.scraper.american-cinemateque
+(defpackage #:com.larevivalist.scraper.american-cinematheque
   (:nicknames #:larev.ac)
   (:use #:cl #:com.larevivalist.scraper.utils)
   (:export #:collect-showtimes))
 
-(in-package #:com.larevivalist.scraper.american-cinemateque)
+(in-package #:com.larevivalist.scraper.american-cinematheque)
 
 (defvar *ac-cal-dom* (ws:get-raw-dom "http://americancinemathequecalendar.com/calendar"))
 
