@@ -43,7 +43,7 @@
 
 (defun csv-header ()
   "Returns CSV header for Google Calendar"
-  "Subject,Date,Time,Location")
+  "Subject,Start Date,Start Time,Location")
 
 (defun show->csv (show)
   "Converts show record to CSV string for export to Google Calendar"
@@ -54,12 +54,13 @@
 	  (get-time show)
 	  (get-theatre show)))
 
-(defun create-csv-file (shows filename)
+(defun create-csv-file (shows filepath)
   "Creates a CSV file from a list of show records"
   (with-open-file (csv-file
-		   (concatenate 'string cl-user::*larev-path-str* filename) 
+		   filepath
 		   :direction :output
-		   :if-exists :overwrite)
-    (format csv-file (csv-header))
+		   :if-exists :overwrite
+		   :if-does-not-exist :create)
+    (format csv-file "~a~%" (csv-header))
     (dolist (show shows)
       (format csv-file "~a~%" (show->csv show)))))
