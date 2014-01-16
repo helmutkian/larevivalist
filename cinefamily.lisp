@@ -14,11 +14,11 @@
       (setf *cf-cal-dom*
 	    (ws:get-processed-dom url))))
 
-(defun get-calendar-entries (dom)
+(defun get-calendar-entries (dom &key (ignore-past-entries t))
   (remove-if-not (lambda (entry)
 		   (and (not (ws::get-attribs entry))
-			;(ws:find-first entry :tag :small)
-			))
+			(or ignore-past-entries 
+			    (ws:find-first entry :tag :small))))
 		 (ws:find-all dom :tag :td)))
 
 (defun get-showtimes (entry)
@@ -42,10 +42,11 @@
                     :time ,(second showtime) 
                     :theatre "Cinefamily"))))
 
-(defun collect-showtimes (cal-dom)
-  (loop for entry in (get-calendar-entries cal-dom)
+(defun collect-showtimes (cal-dom ignore-past)
+  (loop for entry in (get-calendar-entries cal-dom 
+					   :ignore-past-entries ignore-past)
         for shows = (format-showtimes entry)
         append shows))
 
-(defun scrape-shows ()
-  (collect-shows (get-dom)))
+(defun scrape-shows (&key (ignore-past-shows t))
+  (collect-shows (get-dom)) ignore-past-shows)
