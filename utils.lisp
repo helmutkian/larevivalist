@@ -1,12 +1,12 @@
 (defpackage #:com.larevivalist.scraper.utils
   (:nicknames #:larev.utils)
-  (:uses #:cl)
+  (:use #:cl)
   (:export #:*month*
 	   #:*year*
 	   #:strip-whitespace
 	   #:format-date))
 
-(in-package #:com.larivialist.scraper.utils)
+(in-package #:com.larevivalist.scraper.utils)
 
 (defvar *month* 1)
 (defvar *year* 2014)
