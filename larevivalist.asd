@@ -1,5 +1,5 @@
 (asdf:defsystem #:larevivalist
-  :depends-on ("cl-web-scrape")
+  :depends-on ("cl-web-scrape" "alexandria")
   :components ((:file "utils")
 	       (:file "ac"
 		      :depends-on ("utils"))
