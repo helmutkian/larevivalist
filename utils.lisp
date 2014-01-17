@@ -20,12 +20,13 @@
 (defun format-date (day &key (month *month*) (year *year*))
   (format nil "~a/~a/~a" month day year))
 
-(defun make-show (&key title date time theatre)
+(defun make-show (&key title date time theatre link)
   "Constructor for show record"
   `(:title ,title
     :date ,date
     :time ,time
-    :theatre ,theatre))
+    :theatre ,theatre
+    :link ,link))
 
 (defmacro define-show-accessor (name)
   (let ((show-arg (gensym))
@@ -40,19 +41,21 @@
 (define-show-accessor date)
 (define-show-accessor time)
 (define-show-accessor theatre)
+(define-show-accessor link)
 
 (defun csv-header ()
   "Returns CSV header for Google Calendar"
-  "Subject,Start Date,Start Time,Location")
+  "Subject,Start Date,Start Time,Description,Location")
 
 (defun show->csv (show)
   "Converts show record to CSV string for export to Google Calendar"
   (format nil 
-	  "\"~a at ~a\",~a,~a,~a"
+	  "\"~a at ~a\",~a,~a,~a,~a"
 	  (get-title show)
 	  (get-theatre show)
 	  (get-date show)
 	  (get-time show)
+	  (get-link show)
 	  (get-theatre show)))
 
 (defun create-csv-file (shows filepath)
