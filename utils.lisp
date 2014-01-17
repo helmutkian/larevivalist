@@ -50,7 +50,7 @@
 (defun show->csv (show)
   "Converts show record to CSV string for export to Google Calendar"
   (format nil 
-	  "\"~a at ~a\",~a,~a,\"~a\",\"~a\""
+	  "\"~a @ ~a\",~a,~a,\"~a\",\"~a\""
 	  (get-title show)
 	  (get-theatre show)
 	  (get-date show)
