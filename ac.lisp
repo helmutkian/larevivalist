@@ -48,6 +48,15 @@
 			   (subseq text am-pm-pos))))
 	  (ws:find-all entry :class "date-display-single")))
 
+(defun get-links (entry)
+  (let ((root-url "http://www.americancinemathequecalendar.com")
+	(a-nodes (ws:find-all entry :tag :a)))
+    (mapcar (lambda (node)
+	      (concatenate 'string
+			   root-url
+			   (ws:a-href node)))
+	    a-nodes)))
+
 (defun collect-showtimes (dom)
   (loop with showtimes = (get-non-empty-calendar-entries dom)
         for entry in showtimes
@@ -55,10 +64,12 @@
         append (loop for title in (get-titles entry)
 		     for time in (get-times entry)
 		     for theatre in (get-theatres entry)
-		     collect `(:title ,title
-			       :date ,date
-			       :time ,time
-			       :theatre ,theatre))))
+		     for link in (get-links entry)
+		     collect (make-show :title title
+					:date date
+					:time time
+					:theatre theatre
+					:link link))))
 
 (defun scrape-shows ()
   (collect-showtimes (get-dom)))
