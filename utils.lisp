@@ -43,9 +43,9 @@
 (define-show-accessor theatre)
 (define-show-accessor link)
 
-(defun csv-header ()
-  "Returns CSV header for Google Calendar"
-  "Subject,Start Date,Start Time,Description,Location")
+(defparameter *csv-header* 
+  "Subject,Start Date,Start Time,Description,Location"
+  "CSV header for Google Calendar")
 
 (defun show->csv (show)
   "Converts show record to CSV string for export to Google Calendar"
@@ -65,6 +65,6 @@
 		   :direction :output
 		   :if-exists :overwrite
 		   :if-does-not-exist :create)
-    (format csv-file "~a~%" (csv-header))
+    (format csv-file "~a~%" *csv-header*)
     (dolist (show shows)
       (format csv-file "~a~%" (show->csv show)))))
