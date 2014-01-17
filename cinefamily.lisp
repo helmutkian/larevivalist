@@ -30,17 +30,22 @@
 			  (ws:find-all entry :class "event-block")))
 	  (mapcar #'ws:get-text (ws:find-all entry :tag :small))))
 
+(defun get-links (entry)
+  (mapcar #'ws:a-href
+	  (ws:find-all entry :tag :a)))
+
 (defun get-day (entry &key (month *month*) (year *year*))
   (ws:get-text (ws:find-first entry :class "dayHead")))
 
 (defun format-showtimes (entry)
-  (let ((date (format-date (get-day entry)))
-	(showtimes (get-showtimes entry)))
-    (loop for showtime in showtimes
-          collect `(:title ,(first showtime) 
-		    :date ,date 
-                    :time ,(second showtime) 
-                    :theatre "Cinefamily"))))
+  (loop with date = (format-date (get-day entry))
+        for showtime in (get-showtimes entry)
+        for link in (get-links entry)
+        collect (make-show :title (first showtime) 
+			   :date date 
+			   :time (second showtime) 
+			   :theatre "Cinefamily"
+			   :link link)))
 
 (defun collect-showtimes (cal-dom ignore-past)
   (loop for entry in (get-calendar-entries cal-dom 
