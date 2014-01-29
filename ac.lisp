@@ -12,9 +12,24 @@
 
 (defvar *cal-dom* nil)
 
+(defun get-next-months-calendar-dom (dom)
+  (-> dom
+    (ws:find-first :class "date-next")
+    (ws:find-first :tag :a)
+    (ws:a-href)
+    (ws:get-raw-dom)))
+
 (defun get-dom (&optional (url *cal-url*))
   (or *cal-dom*
-      (setf *cal-dom* (ws:get-raw-dom url))))
+      (-> url 
+	(ws:get-raw-dom)
+	(push *cal-dom*)
+	(car)
+	(get-next-months-calendar-dom)
+	(push *cal-dom*))))
+	  
+
+
 
 (defun get-month-year (dom)
   (let ((month-year 
@@ -41,8 +56,8 @@
 		  "Aero Theatre"))
 	    theatre-strs)))
 
-(defun get-date (entry)
-  (destructuring-bind (month year) (get-month-year (get-dom))
+(defun get-date (entry dom)
+  (destructuring-bind (month year) (get-month-year dom)
     (format-date (strip-whitespace 
 		  (ws:get-text (ws:find-first entry :class "day")))
 		 :month month
@@ -76,7 +91,7 @@
 (defun collect-showtimes (dom)
   (loop with showtimes = (get-non-empty-calendar-entries dom)
         for entry in showtimes
-        for date = (get-date entry)
+        for date = (get-date entry dom)
         append (loop for title in (get-titles entry)
 		     for time in (get-times entry)
 		     for theatre in (get-theatres entry)
@@ -88,4 +103,5 @@
 					:link link))))
 
 (defun scrape-shows ()
-  (collect-showtimes (get-dom)))
+  (loop for cal-dom in (get-dom)
+        append (collect-showtimes cal-dom)))
