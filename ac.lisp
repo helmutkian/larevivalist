@@ -1,19 +1,32 @@
 (defpackage #:com.larevivalist.scraper.american-cinematheque
   (:nicknames #:larev.ac)
-  (:use #:cl #:com.larevivalist.scraper.utils)
+  (:use #:cl 
+	#:com.larevivalist.scraper.utils
+	#:hk.utils.thrush
+	#:split-sequence)
   (:export #:scrape-shows))
 
 (in-package #:com.larevivalist.scraper.american-cinematheque)
 
-(defvar *ac-cal-url* "http://americancinemathequecalendar.com/calendar")
+(defvar *cal-url* "http://americancinemathequecalendar.com/calendar")
 
-(defvar *ac-cal-dom* nil)
+(defvar *cal-dom* nil)
 
-(defun get-dom (&optional (url *ac-cal-url*))
-  (if *ac-cal-dom*
-      *ac-cal-dom*
-      (setf *ac-cal-dom* (ws:get-raw-dom url))))
+(defun get-dom (&optional (url *cal-url*))
+  (or *cal-dom*
+      (setf *cal-dom* (ws:get-raw-dom url))))
 
+(defun get-month-year (dom)
+  (let ((month-year 
+	 (split-sequence 
+	  #\space
+	  (-> dom
+	    (ws:find-first :class "date-heading")
+	    (ws:find-first :tag :h3)
+	    (ws:get-text)))))
+    (cons (get-month-num (car month-year))
+	  (cdr month-year))))
+	   
 (defun get-non-empty-calendar-entries (dom)
   (remove-if (lambda (node)
 	       (ws:find-first node :class "calendar-empty"))
@@ -29,8 +42,11 @@
 	    theatre-strs)))
 
 (defun get-date (entry)
-  (format-date (strip-whitespace 
-		(ws:get-text (ws:find-first entry :class "day")))))
+  (destructuring-bind (month year) (get-month-year (get-dom))
+    (format-date (strip-whitespace 
+		  (ws:get-text (ws:find-first entry :class "day")))
+		 :month month
+		 :year year)))
 
 (defun get-titles (entry)
   (mapcar #'ws:get-text
