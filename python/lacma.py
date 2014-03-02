@@ -1,147 +1,72 @@
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import *
-from itertools import count
-from time import sleep
-import re
+from bs4 import BeautifulSoup
+from larevivalist import *
+import urllib2
 
-DEBUG = False
+start_url = "http://www.lacma.org/programs/film/listings"
+root_url = "http://www.lacma.org/"
 
-def get_month_num(month_str):
-    return str(["january"
-                , "february"
-                , "march"
-                , "april"
-                , "may"
-                , "june"
-                , "july"
-                , "august"
-                , "september"
-                , "november"
-                , "december"].index(month_str.lower()) + 1)
+def open_page(url):
+    src = urllib2.urlopen(url)
+    return BeautifulSoup(src)
 
-def get_text(elm):
-    return elm.text
+def get_calendar_entries(soup):
+    is_show = lambda x: x.find(class_="views-field-title")
+    return filter(is_show, soup.find_all(class_="views-row"))
 
-def wait_until_located(elm, timeout, by, value):
-    wait = WebDriverWait(elm, timeout)
-    return wait.until(EC.presence_of_element_located((by, value)))
+def get_title(entry):
+    title = entry.find(class_="views-field-title").a.text
+    print title
+    return title
 
-def wait_until_all_located(elm, timeout, by, value):
-    wait = WebDriverWait(elm, timeout)
-    return wait.until(EC.presence_of_all_elements_located((by, value)))
+def get_link(entry):
+    link = entry.find(class_="views-field-title").a.get("href")
+    return root_url+link
 
-
-def remove_ticket_links(links):
-    tick_pat = re.compile("ticketmob")
-    return filter(lambda l: not(tick_pat.search(l)), links)
-
-def debug_print_all(xs):
-    if DEBUG:
-        for x in xs:
-            print x
-    else: 
-        pass
-
-def debug_print(x):
-    if DEBUG:
-        print x
+def format_time(time_str):
+    if len(time_str) < len("0:00 PM"):
+        hour, am_pm = time_str.split(' ')
+        return hour+':00 '+am_pm
     else:
-        pass
+        return time_str
 
-def get_showtimes(cal):
-    entries = []
-    for day in cal:
-        try:
-            # Get WebElements
-            show_elms = wait_until_all_located(day, 20, By.TAG_NAME, "a")
-            time_elms = wait_until_all_located(day, 20, By.TAG_NAME, "small")
-            # Extract data
-            date = wait_until_located(day, 10, By.CLASS_NAME, "dayHead").text
-            times = map(lambda s: s.text, time_elms)
-            times = map(lambda t: "11:59PM" if t == "MIDNITE" else t, times)
-            titles = map(lambda a: a.text, show_elms)
-            titles = filter(lambda t: t != '', titles)
-            # debug_print_all(titles)
-            links = map(lambda a: a.get_attribute("href"), show_elms)
-            links = remove_ticket_links(links)
-            entry = (date, zip(titles, times, links))
-            entries.append(entry)
-        except NoSuchElementException:
-            pass
-        except TimeoutException:
-            pass
-    return entries
-    
-def get_calendar(driver):
-    results = wait_until_all_located(driver, 30, By.TAG_NAME, "td")
-    # results = driver.find_elements_by_tag_name("td")
-    (month, year) = results[1].text.split(' ')
-    days = get_showtimes(results[4:])
-    return (month, year, days)
+def get_date_time(entry):
+    date_time = entry.find(class_="views-field-field-event-display-date").text
+    date_str, time_str = date_time.split(' | ')
+    week_day, month_day, year = date_str.split(', ')
+    month_str, day = month_day.split(' ')
+    month = get_month_num(month_str)
+    time = remove_newline(time_str.upper())
+    return (format_date(month,day,year),format_time(time))
 
-def format_date(month, day, year):
-    return get_month_num(month) + "/" + day + "/" + year
-            
-def quote(s):
-    return '\"' + s + '\"'
+def get_shows(soup):
+    shows = []
+    for entry in get_calendar_entries(soup):
+        title = get_title(entry)
+        link = get_link(entry)
+        date, time = get_date_time(entry)
+        show = Show(title,date,time,"LACMA",link)
+        shows.append(show)
+    return shows
 
-def cal_to_csv(cal):
-    month = cal[0]
-    year = cal[1]
-    theatre = "Cinefamily"
-    csvs = []
-    for entry in cal[2]:
-        day = entry[0]
-        for showtime in entry[1]:
-            subject = showtime[0]
-            time = showtime[1]
-            link = showtime[2]
-            csv = quote(subject + " @ " + theatre)
-            csv += ',' + format_date(month,day,year)
-            csv += ',' + time 
-            csv += ',' + quote(link)
-            csv += ',' + theatre
-            csvs.append(csv)
-    return csvs
+def get_next_page_url(soup):
+    link = soup.find(class_="pager-next")
+    if link:
+        return root_url+link.a.get("href")
+    else: 
+        return None
 
-def open_page(driver):
-    driver.get("http://www.cinefamily.org")
-
-def click_next_month(driver):
-    # debug_print("clicking")
-    next_month_button = wait_until_located(driver, 10, By.ID, "EC_nextMonthLarge")
-    next_month_button.click()
-    # debug_print("done clicking")
-
-def write_csvs_to_file(csvs):
-    try:
-        f = open("cf.csv", "w")
-        f.write("Subject,Start Date,Start Time,Description,Location")
-        for csv in csvs:
-            f.write(csv + '\n')
-    finally:
-        f.close()
 
 def main():
-    try:
-        driver = webdriver.Firefox(timeout = 60 * 5)
-        driver.set_page_load_timeout(30)
-        open_page(driver)
-        click_next_month(driver)
-        # debug_print("sleeping")
-        # Sleep to prevent race condition when get_calender() is called before
-        # DOM is updated
-        sleep(10)
-        # debug_print("done sleeping")
-        cal = get_calendar(driver)
-        csvs = cal_to_csv(cal)
-        write_csvs_to_file(csvs)
-    finally:
-        driver.quit()
+    url = start_url
+    shows = []
+    while True:
+        soup = open_page(url)
+        shows += get_shows(soup)
+        url = get_next_page_url(soup)
+        if not(url):
+            break
+        print url
+    write_to_file(shows, "lacma.csv")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
-    
