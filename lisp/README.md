@@ -1,0 +1,1 @@
+Lisp scripts deprecated
