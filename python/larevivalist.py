@@ -15,10 +15,13 @@ class Show:
         csv += ',' + quote(self.link)
         return csv.encode('utf-8')
 
-def get_month_num(month_str):
-    months = ["january","februrary","march","april","may","june","july"\
-             ,"august","september","october","november","december"]
-    return months.index(month_str.lower())+1
+def remove_newline(s):
+    return filter(lambda x: x!='\n', s)
+
+MONTHS = ["january","februrary","march","april","may","june","july"\
+              ,"august","september","october","november","december"]
+def get_month_num(month_str, month_list=MONTHS):
+    return month_list.index(month_str.lower())+1
 
 def format_date(month,day,year):
     return str(month)+'/'+str(day)+'/'+str(year)

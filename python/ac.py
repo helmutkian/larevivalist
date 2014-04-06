@@ -3,14 +3,11 @@ import urllib2
 from larevivalist import *
 
 root_url = "http://americancinemathequecalendar.com"
-start_url = "http://americancinemathequecalendar.com/calendar/2014-03"
+start_url = "http://americancinemathequecalendar.com/calendar/"
 
 def open_page(url):
     src = urllib2.urlopen(start_url)
     return BeautifulSoup(src)
-
-def remove_newline(s):
-    return filter(lambda x: x!='\n', s)
 
 def get_month_year(soup):
     month, year = soup.find(class_="date-heading").text.split(' ')
