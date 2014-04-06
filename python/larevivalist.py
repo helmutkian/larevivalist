@@ -18,10 +18,9 @@ class Show:
 def remove_newline(s):
     return filter(lambda x: x!='\n', s)
 
-MONTHS = ["january","februrary","march","april","may","june","july"\
-              ,"august","september","october","november","december"]
-def get_month_num(month_str, month_list=MONTHS):
-    return month_list.index(month_str.lower())+1
+def get_month_num(month_str):
+    months = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+    return months.index(month_str[0:3].lower())+1
 
 def format_date(month,day,year):
     return str(month)+'/'+str(day)+'/'+str(year)
